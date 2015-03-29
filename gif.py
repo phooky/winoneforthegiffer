@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import struct
 import lzw
+import argparse
 
 class GifTerminator(Exception):
     pass
@@ -8,6 +9,8 @@ class GifTerminator(Exception):
 class Gif:
     def __init__(self):
         self.frames = []
+        self.suffix = 'raw'
+        self.prefix = 'out'
 
     def load(self,path):
         f = open(path,"rb")
@@ -106,6 +109,14 @@ class Gif:
             raise ValueError('Unknown block type {0:2x}'.format(blocktype))
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Decode a gif file into a series of raw RGB files.")
+    parser.add_argument('path',type=str,help='the path of the gif file to decode')
+    parser.add_argument('--prefix',type=str,help='the prefix for the output files',default='out')
+    parser.add_argument('--suffix',type=str,help='the suffix of the output files',default='raw')
+    args=parser.parse_args()
+    
     g = Gif()
-    g.load('example.gif')
+    g.load(args.path)
+    g.suffix = args.suffix
+    g.prefix = args.prefix
     print(g.version,g.width,g.height,g.color_bits)
