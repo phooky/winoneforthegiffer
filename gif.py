@@ -96,6 +96,19 @@ class Gif:
             for i in range(self.lct_entries):
                 self.lct.append(struct.unpack(fmt,f.read(3)))
 
+        def write_frame(self,buf,width,ct):
+            if self.lct_flag:
+                ct = self.lct
+            pos = (self.top * width + self.left) * 3
+            idx = 0
+            for j in range(self.h):
+                for i in range(self.w):
+                    buf[pos:pos+3] = ct[self.data[idx]]
+                    idx = idx + 1
+                    pos = pos + 3
+                pos = pos + 3*(width - self.w)
+            
+
     def read_block(self,f):
         blocktype = f.read(1)[0]
         f.seek(-1,1)
@@ -116,7 +129,15 @@ if __name__ == '__main__':
     args=parser.parse_args()
     
     g = Gif()
-    g.load(args.path)
     g.suffix = args.suffix
     g.prefix = args.prefix
+    g.load(args.path)
+    buf = [0]*(3*g.width*g.height)
+    for i,frame in enumerate(g.frames):
+        print("writing frame",i)
+        frame.write_frame(buf,g.width,g.gct)
+        path = "{0}{1:03}.{2}".format(g.prefix,i, g.suffix)
+        f=open(path,'wb')
+        f.write(bytes(buf))
+        f.close()
     print(g.version,g.width,g.height,g.color_bits)
